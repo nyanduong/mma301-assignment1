@@ -1,5 +1,7 @@
 # Những quyết định thiết kế cần giải thích được
 
+Cập nhật 30/10/2026, đối chiếu source `ee2e70c`. Tám quyết định dưới đây phục vụ phạm vi Assignment 1; ví dụ đổi yêu cầu là phân tích tác động, chưa khẳng định đã triển khai. Kết quả test xem [TEST_MATRIX.md](TEST_MATRIX.md).
+
 ## 1. Một Native Stack cho năm màn hình
 
 - Bối cảnh: bài tập cần mở màn hình con và quay về màn hình trước.
@@ -62,3 +64,12 @@
 - Đánh đổi: ScreenContainer chứa StorageNotice nên phục vụ ứng dụng này, chưa là component độc lập để xuất thư viện.
 - Khi yêu cầu đổi: chỉ tách/thêm thư mục khi có logic cần dùng lại; không tạo repository/service layer chung cho hai khóa local.
 - Tệp: `src/`, `App.jsx`.
+
+## 8. StatusBar đi cùng chủ sở hữu theme
+
+- Bối cảnh: kiểm thử LDPlayer ngày 29/10 phát hiện giờ/biểu tượng Android tối trên nền Dark, khó đọc.
+- Quyết định: đặt StatusBar của React Native trong ThemeProvider; barStyle là light-content khi isDark, dark-content khi Light. Render cả khi đang hydrate theme.
+- Vì sao: dùng cùng state themeMode cho nội dung và thanh trạng thái, tránh mỗi screen tự đặt màu khác nhau; không thêm dependency.
+- Đánh đổi: native app.json vẫn userInterfaceStyle light; chưa hỗ trợ preference theo hệ thống. Đây là điều khiển kiểu chữ/biểu tượng, không phải thay toàn bộ system UI hoặc navigation bar Android.
+- Khi yêu cầu đổi: thêm system theme cần mode hiệu lực từ Appearance/useColorScheme, validator storage mới và retest khi hệ điều hành đổi theme.
+- Tệp: `src/context/ThemeContext.jsx`. Retest Dark/Light trên LDPlayer đã đạt; xem B01 trong DEBUG_LOG.

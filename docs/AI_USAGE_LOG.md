@@ -1,5 +1,7 @@
 # Nhật ký sử dụng AI
 
+**Cập nhật hồ sơ nộp: 30/10/2026.** Các mục M0–M7 bên dưới là lịch sử theo ngày/milestone, giữ nguyên nội dung; phiên bản SDK và kết quả test trong đó không mô tả bản hiện tại. Bản hiện tại dùng Expo 58.0.21 / React 19.3.0 / RN 0.88.1. Xem phần bổ sung 29–30/10 ở cuối tài liệu và [TEST_MATRIX.md](TEST_MATRIX.md) cho kết quả mới.
+
 ## 04/10/2026 — M0: Cách làm theo từng giai đoạn và khởi tạo Expo
 
 ### Nhiệm vụ, yêu cầu và tài liệu tham khảo
@@ -378,3 +380,29 @@ Kiểm tra số học độ tương phản của chữ chính/phụ trên backgr
 - Lỗi thật: D01 script đọc style sai, D02 newline dư đã sửa/kiểm tra lại; D03 lệch bản vá Expo và D04 UTF-16 là lỗi lịch sử có evidence. Chưa phát hiện application defect trong phạm vi tự động. uuid deprecated và audit vẫn được giữ làm giới hạn, không nói đã fix.
 - Giới hạn: script mô phỏng hooks/UI/storage, dùng StackRouter thật; không thay UI native hoặc đĩa thật. Cảnh báo do fault injection không phải bug thực tế. Không có xác nhận người học chạm thiết bị ở sprint này.
 - Người học còn phải: checklist cuối TEST_MATRIX trên điện thoại, học source theo LEARNING_MAP, giải thích WHY/WHAT/FLOW/FAILURE và tự thử change request sau sprint. Sáu bài diễn tập mới chỉ phân tích tác động, chưa triển khai.
+
+## 29/10/2026 — Đối chiếu đề, kiểm thử LDPlayer và sửa StatusBar
+
+- Yêu cầu/prompt tham chiếu: người học hỏi bài đã đáp ứng đề chưa; sau đó yêu cầu dùng màn hình LDPlayer để test; tiếp theo yêu cầu sửa status bar khó đọc khi Dark. Nguồn: phiên chat của dự án ngày 29/10.
+- Mục đích: kiểm chứng workflow thật ngoài mock, tìm khác biệt với đề và xử lý lỗi được quan sát.
+- Đầu ra AI áp dụng: tổng hợp ca UI, thêm StatusBar của React Native trong ThemeProvider, barStyle theo isDark; không thêm thư viện.
+- Cách điều chỉnh: StatusBar đặt ở chủ sở hữu theme và được render cả khi hydrated chưa hoàn tất; giữ loading chặn children đến khi theme đọc xong. Không thay cấu trúc form/list/storage.
+- Kiểm chứng: Codex trực tiếp click/type trên LDPlayer 14.0.25.1, Expo Go/Metro mở sẵn. Đã thử đủ năm màn hình, Save/Cancel, tên rỗng/1 ký tự, list chọn/bỏ chọn/lọc/empty, state Activity reset sau pop, theme shared. Đóng tab Expo Go → launcher → mở Expo Go → chọn dự án còn Studentq và Dark.
+- Lỗi thật: status bar Android chữ/icon tối trên nền Dark; thiếu barStyle theo theme. Sau sửa đã bật Dark thấy chữ/icon trắng, trả Light thấy chữ/icon tối, đọc rõ. Source hiện tại giữ bản sửa tại ee2e70c; xem B01 trong DEBUG_LOG.
+- Giới hạn: phiên UI không ghi SHA bundle, phiên bản Android/Expo Go hoặc độ phân giải logic; không có bộ ảnh/video riêng trong repo. Thao tác đóng/mở không chứng minh force-stop/reboot. Không thấy crash/màn hình đỏ trong các ca đã thử, không thu Logcat.
+- Người học ban đầu yêu cầu mở rộng test bàn phím ảo/cỡ chữ lớn/màn hình nhỏ/toàn bộ biên nhập liệu rồi chủ động yêu cầu dừng. Không tiếp tục và không ghi PASS cho các phần đó. Lượt retest kết thúc ở Settings Light; hồ sơ đã trả Student/bio gốc.
+- Báo cáo LDPlayer riêng được tạo trong phiên chat nhưng không còn trong workspace khi rà ngày 30/10. Hồ sơ nộp hiện gộp lại bằng chứng có trong lịch sử chat vào TEST_MATRIX, không tạo thêm một tài liệu trùng lặp.
+- Phân biệt trách nhiệm: AI thực hiện các thao tác trên emulator; không ghi rằng người học đã tự test, tự giải thích hoặc tự hoàn thành modification.
+
+## 30/10/2026 — Đồng bộ toàn bộ tài liệu nộp
+
+- Yêu cầu/prompt tham chiếu: “cập nhật hết document cho khớp code và kết quả test hiện tại … docs nào out scope đề thì có thể xóa”.
+- Mục đích: bỏ thông tin hiện hành sai SDK/trạng thái test; giữ bằng chứng lịch sử đúng thời điểm; chốt README, RTM, design/test/debug/AI và tài liệu phỏng vấn.
+- Source đối chiếu: ee2e70ca5266c6a0f57727fd4e1abb6f4250e959; package-lock khóa Expo 58.0.21, React 19.3.0, RN 0.88.1, AsyncStorage 2.2.0. Cập nhật dependency đã tồn tại trong repo trước lượt tài liệu này; AI không chạy install/update để đổi phiên bản.
+- Đầu ra áp dụng: viết lại README/RTM/TEST_MATRIX theo trạng thái hiện tại; bổ sung B01 vào DEBUG_LOG, quyết định StatusBar vào DESIGN_DECISIONS và flow theme trong LEARNING_MAP; thêm phần tổng hợp này. Giữ M0–M7 làm lịch sử, không sửa thành các kết quả mới.
+- Lý do giữ LEARNING_MAP: phục vụ Code Explanation và Modification/Transfer trong rubric, không phải scope Assignment 2. Không có tài liệu hiện có nào cần xóa; gộp kiểm thử emulator vào TEST_MATRIX để tránh lặp.
+- Kiểm chứng mới: npx expo install --check đạt; npx expo-doctor mã 0, 20/20; npx expo config --type public mã 0, SDK 58, Android/iOS, portrait. Root dependencies trong package.json khớp package-lock.json.
+- npm audit --json mã 1: 8 mục gồm 5 low, 0 moderate, 3 high, 0 critical; chưa xử lý. Không dùng kết quả 22 mục/doctor 21/21 ngày 07/10 để mô tả SDK 58.
+- Cách kiểm chứng tài liệu: đối chiếu source/lockfile; kiểm tra UTF-8, hàng rào code, liên kết nội bộ và git diff --check sau biên tập.
+- Chưa thực hiện: không cài clone sạch, không bundle lại Android/iOS, không chạy lại script mock lịch sử, không điều khiển UI hoặc tiếp tục các test người học đã dừng. Những phần này ghi rõ giới hạn trong TEST_MATRIX.
+- Người học chịu trách nhiệm cuối: đọc và hiểu source/tài liệu, tuân thủ tên bài nộp và yêu cầu riêng của lớp, tự giải thích/debug và xử lý thay đổi nhỏ khi đánh giá. Không có lời khai thay người học đã hoàn tất các năng lực đó.

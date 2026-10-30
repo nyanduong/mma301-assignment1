@@ -1,84 +1,81 @@
-# Ma trận kiểm thử cuối sprint
+# Test matrix — bản tài liệu nộp
 
-Ngày: 07/10/2026. Phiên bản mã chạy: M6 `71c0836`, cùng source ứng dụng/dependency với M5 `ff18eff`. M7 bổ sung tài liệu; không thay source ứng dụng.
+Cập nhật **30/10/2026**. Source đối chiếu: `ee2e70ca5266c6a0f57727fd4e1abb6f4250e959`. Tài liệu này tổng hợp kiểm tra hiện tại và bằng chứng phiên chat 29/10; không phải chạy lại toàn bộ UI ngày 30/10.
 
-## Hiểu đúng kết quả
+## Môi trường và ý nghĩa trạng thái
 
-- `AI_AUTOMATED_PASS`: đạt trong phạm vi script, source, dependency hoặc bundle đã ghi. Không đồng nghĩa chạy đạt trên điện thoại.
-- `STUDENT_DEVICE_PENDING`: chưa có bằng chứng người học kiểm tra UI/hệ điều hành native.
-- `FAIL`: phép kiểm tra không đạt. Audit dependency được ghi FAIL riêng, không bị che bởi doctor đạt.
-- Script logic đặt ngoài repo theo yêu cầu không commit script tạm. Nó dùng Babel nạp source, mô phỏng hooks/component/AsyncStorage và dùng StackRouter thật cho luồng tích hợp. Không phải React test renderer; không kiểm chứng lịch render thực tế, bridge native, gesture hoặc đĩa thật.
+- Bản hiện tại: Expo 58.0.21, React 19.3.0, React Native 0.88.1, AsyncStorage 2.2.0 theo lockfile.
+- UI: Windows, LDPlayer 14.0.25.1, Expo Go và Metro do người học mở sẵn ngày 29/10.
+- Người thao tác UI: Codex qua Computer Use theo yêu cầu người học. Không ghi thành người học tự test.
+- Phiên bản Android/Expo Go và độ phân giải logic chưa được ghi nhận. Không xác nhận SHA chính xác của bundle UI lúc test; source StatusBar hiện tại khớp bản sửa trong phiên chat.
+- PASS_EMULATOR: trực tiếp thao tác và quan sát ảnh cửa sổ trong chat, không dùng mock cho ca đó.
+- PASS_TOOL: lệnh mới ngày 30/10 đạt trên workspace hiện tại.
+- HISTORICAL_PASS: kết quả đã ghi ngày 07/10, SDK 57; chưa chạy lại trên SDK 58.
+- NOT_VERIFIED: chưa kiểm chứng; không đồng nghĩa phát hiện lỗi.
+- FAIL_AUDIT: audit còn cảnh báo, không bị che bởi doctor đạt.
 
-## Các ca chức năng
+## A. Kiểm thử UI trực tiếp ngày 29/10/2026
 
-| ID | Nhóm | Điều kiện trước | Bước chạy | Mong đợi | Thực tế | Trạng thái | Bằng chứng |
-|---|---|---|---|---|---|---|---|
-| T01 | Khởi động lần đầu | Mock storage không có hai khóa | Tạo ThemeProvider rồi ProfileProvider; đợi effect | Loading trước, sau đó Light và Student; không tự ghi mặc định | Đúng giá trị, 0 lần ghi | AI_AUTOMATED_PASS | Nhóm first run/loading; hai Context |
-| T02 | Đọc hồ sơ | Context chứa hồ sơ hợp lệ | Render Profile và Home; Save tên mới rồi render lại | Cả hai đọc cùng tên; Profile có avatar/bio | Cùng nhận tên mới; avatar/bio có trong source | AI_AUTOMATED_PASS | Nhóm valid save/shared; ProfileScreen, HomeScreen |
-| T03 | Tên/giới thiệu sai | Form mở từ hồ sơ cũ | Tên rỗng, trắng, 1, 51 ký tự; bio 161; gọi Lưu | Có lỗi; Context giữ nguyên; invalid không goBack | Đúng; kiểm tra biên validator và handler invalid | AI_AUTOMATED_PASS | validateProfile; controlled draft invalid save |
-| T04 | Lưu hợp lệ | Form mở; name 2/50, bio 160 là hợp lệ | Gõ tên có khoảng trắng hai đầu và bio; Lưu | Object mới đã trim; hồ sơ cũ không bị mutate; pop một màn hình | Đúng qua handler và StackRouter | AI_AUTOMATED_PASS | EditProfileScreen → handleSave; valid save |
-| T05 | Hủy | Có hồ sơ đã lưu | Sửa nháp → Hủy → mở lại Edit | Không cập nhật Context; mở lại lấy hồ sơ hiện tại | Đúng; bản nháp bỏ đi | AI_AUTOMATED_PASS | Nhóm cancel/reopen; luồng tích hợp |
-| T06 | Đổi theme | Light đã hydrate | Gọi Switch của ThemeToggle, render lại | Dark; màu input/header/background đổi | Context và cấu hình màu đổi đúng | AI_AUTOMATED_PASS | ThemeToggle, ThemeContext, AppNavigator |
-| T07 | Theme/hồ sơ qua phiên mới | Storage mock đọc/ghi thành công | Đổi theme, Save; đợi ghi; tạo Provider mới | Khôi phục Dark và hồ sơ mới từ JSON | Đúng trong mock remount | AI_AUTOMATED_PASS | Nhóm save JSON/restore; native xem D01 |
-| T08 | Danh sách thường | Màn hình Activity mới | Lấy data/keyExtractor | 6 mục, key unique ổn định | 6 ID khác nhau, dùng item.id | AI_AUTOMATED_PASS | activities.js; list keys/collection |
-| T09 | Danh sách rỗng | selectedIds rỗng | Bật bộ lọc đã chọn | data rỗng, hiện lời hướng dẫn tắt lọc | Đúng; cũng đạt khi bỏ chọn mục cuối đang lọc | AI_AUTOMATED_PASS | ListEmptyComponent; filter/empty |
-| T10 | Chọn/bỏ chọn | 6 mục, chưa chọn | Nhấn item, bật lọc, nhấn lại, tắt lọc | Số chọn 0→1→0, data 6→1→0→6; mảng cũ giữ nguyên | Đúng, extraData nhận mảng mới | AI_AUTOMATED_PASS | ActivityScreen → toggleActivity |
-| T11 | Storage thiếu/hỏng | Các giá trị JSON hỏng/null/array/sai shape/mode | readStoredValue và validator | Thiếu khóa dùng mặc định không báo lỗi; hỏng dùng mặc định và cảnh báo | Đạt toàn bộ mẫu dữ liệu đã thử | AI_AUTOMATED_PASS | appStorage.js; corrupt/missing/invalid tests |
-| T12 | Đủ năm route | Native Stack config thật; Home đầu | Home→Profile→Edit→Save/Cancel→Home→Activity→Home→Settings→Home | Route đúng; Context còn nguyên | StackRouter thật và handler source đi đúng | AI_AUTOMATED_PASS | Nhóm integrated 5-route workflow |
-| T13 | Đọc chậm | Promise đọc chưa hoàn tất | Render Provider; kiểm tra trước/sau giải phóng đọc | Chỉ Loading; không ghi sớm/không ghi lại giá trị restore | 0 ghi trước/sau hydrate chưa có thao tác | AI_AUTOMATED_PASS | hydrated + lastRequestedValue; deferred read |
-| T14 | Lỗi đọc | getItem bị mô phỏng reject | Mount hai Provider | Fallback, UI cảnh báo, không tự ghi đè dữ liệu | Đúng, StorageNotice có cảnh báo | AI_AUTOMATED_PASS | Nhóm read failures; try/catch |
-| T15 | Lỗi ghi và phục hồi | setItem reject, sau đó hoạt động lại | Sửa profile/theme; chờ; sửa lần nữa | State vẫn đổi, báo chưa lưu; lần ghi sau thành công xóa lỗi | Đúng; dữ liệu mới nhất được lưu | AI_AUTOMATED_PASS | Nhóm write failure/retry |
-| T16 | Ghi liên tiếp | Làm chậm lần ghi thứ nhất | Gửi hai giá trị cùng khóa | Lần hai đợi lần một; giá trị sau cùng thắng | Đúng thứ tự và JSON cuối | AI_AUTOMATED_PASS | pendingWrites; serialized/latest tests |
-| T17 | State cục bộ | Đã chọn Activity | Pop Activity, tạo màn hình mới | Selection/filter khởi tạo lại; profile/theme vẫn giữ | Đúng trong mô phỏng vòng đời | AI_AUTOMATED_PASS | Luồng tích hợp; native cần D01 |
-| T18 | Provider từ chối dữ liệu sai | Provider đã hydrate | updateProfile(null) và tên rỗng | Trả false, không thay hồ sơ/không ghi | Đúng | AI_AUTOMATED_PASS | ProfileContext → updateProfile |
-| D01 | Toàn ứng dụng trên điện thoại | Expo Go SDK 57, chạy Metro | Thực hiện checklist cuối tài liệu này | UI, bàn phím, back, state và persistence native đúng | Chưa có xác nhận từ người học | STUDENT_DEVICE_PENDING | Chưa có ảnh/video/ghi nhận thiết bị |
+| ID | Điều kiện / thao tác | Expected | Actual | Trạng thái |
+|---|---|---|---|---|
+| L01 | Home → Profile với Student | Tên, avatar, bio đúng | Student, avatar S, MMA301 learner | PASS_EMULATOR |
+| L02 | Edit: Student → Studen, Hủy, mở lại | Bỏ nháp, giữ hồ sơ | Profile/form mới vẫn Student | PASS_EMULATOR |
+| L03 | Edit: thêm q → Studentq, Lưu, về Home | Profile và Home cập nhật ngay | Profile Studentq, Home chào Studentq | PASS_EMULATOR |
+| L04 | Activity mở mới | Sáu mục và count 0 | Đúng sáu mục, count 0 | PASS_EMULATOR |
+| L05 | Bật lọc khi chưa chọn rồi tắt lọc | Empty rồi khôi phục sáu mục | Có hướng dẫn tắt lọc; tắt lọc hiện đủ | PASS_EMULATOR |
+| L06 | Chọn Đọc sách → lọc → bỏ chọn mục cuối | Count 0→1→0, danh sách 6→1→0 | Đúng trạng thái/viền/count và empty | PASS_EMULATOR |
+| L07 | Settings bật Dark, đi qua năm màn hình | Theme giữ và nội dung đổi màu | Home/Profile/EditProfile/Activity/Settings, header/form/card dùng màu tối | PASS_EMULATOR cho nội dung; lỗi status bar xem L12 |
+| L08 | Lưu Studentq và Dark; đóng tab Expo Go bằng X trong LDPlayer; về launcher; mở Expo Go; chọn Assignment 1 ở Recent history | Khôi phục profile/theme | Home Dark, Studentq; Profile xác nhận tên/bio đúng | PASS_EMULATOR cho đóng/mở Expo Go |
+| L09 | Edit: tên S, nhấn Lưu | Báo lỗi và ở lại | Lỗi tên 2–50 ký tự, không rời form | PASS_EMULATOR |
+| L10 | Xóa tên thành rỗng, Lưu rồi Hủy | Không lưu, hồ sơ trước còn nguyên | Form báo lỗi; Hủy về Studentq | PASS_EMULATOR |
+| L11 | Activity Dark: chọn Đọc sách và Đi bộ; back Home; mở lại Activity | Count 2 rồi reset theo thiết kế | Hai mục đã chọn/count 2; mở lại count 0, lọc tắt, sáu mục chưa chọn | PASS_EMULATOR |
+| L12 | Sau sửa StatusBar: bật Dark rồi trả Light | Giờ/biểu tượng tương phản đúng | Dark chữ/icon trắng; Light chữ/icon tối, đọc rõ | PASS_EMULATOR — B01 đã sửa |
+| L13 | Kết thúc: xóa q, Lưu Student; trả Light | Khôi phục dữ liệu ban đầu | Student/bio gốc và Light; lượt retest kết thúc ở Settings Light | PASS_EMULATOR |
 
-## Lệnh và bằng chứng bản clone sạch
+Không thấy màn hình lỗi đỏ hoặc crash ở những ca đã thao tác. Không thu Logcat hay kiểm toán mọi runtime warning. Đóng/mở Expo Go không được mô tả là force-stop hoặc reboot Android.
 
-Thư mục tạm ngoài repo: `C:\Users\LENOVO\AppData\Local\Temp\mma301-release-20261007-71c0836`. Clone trực tiếp remote main tại SHA `71c083603c6b9a5fcb269f01d9a55b1e5358f55a`. Không sao chép node_modules cũ, không dùng file bí mật.
+Bằng chứng UI là ảnh/trình tự thao tác trong phiên chat ngày 29/10, được tổng hợp lại ngày 30/10. Không có bộ screenshot/video riêng được lưu trong repo.
 
-| Lệnh/kiểm tra | Kết quả thực tế | Trạng thái |
+## B. Kiểm tra công cụ mới ngày 30/10/2026
+
+| ID | Lệnh / đối chiếu | Expected | Actual | Trạng thái |
+|---|---|---|---|---|
+| C01 | package.json ↔ package-lock.json | Root dependency thống nhất | Expo ^58.0.21, React 19.3.0, RN 0.88.1; lock Expo 58.0.21 | PASS_TOOL |
+| C02 | npx expo install --check | Dependency phù hợp SDK | Dependencies are up to date | PASS_TOOL |
+| C03 | npx expo-doctor | Các kiểm tra cấu hình đạt | 20/20 checks passed, mã 0 | PASS_TOOL |
+| C04 | npx expo config --type public | Config đọc được | SDK 58.0.0, Android/iOS, portrait, assets cấu hình được đọc; mã 0 | PASS_TOOL |
+| C05 | npm audit --json | Không còn cảnh báo | Mã 1; 8 mục: 5 low, 0 moderate, 3 high, 0 critical | FAIL_AUDIT |
+
+Audit đang đánh dấu expo, @expo/cli, zod ở high; các mục low gồm @expo/config, @expo/local-build-cache-provider, @expo/metro-config, @expo/prebuild-config và deepmerge. Số mục gồm cả phụ thuộc chịu ảnh hưởng gián tiếp, không phải tám khai thác độc lập đã chứng minh. Chưa sửa trong lượt tài liệu này; không tuyên bố cảnh báo vô hại. Doctor đạt không có nghĩa audit sạch.
+
+Không chạy npm ci trên workspace đang dùng để tránh thay dependency trong lúc hoàn thiện hồ sơ. Chưa lặp lại clean clone, bundle Android/iOS hoặc script mock 22 nhóm trên SDK 58.
+
+## C. Bằng chứng lịch sử ngày 07/10/2026
+
+Source M6 `71c0836`, dependency SDK 57; các kết quả sau được giữ từ hồ sơ cũ, không gán lại cho phiên bản hiện tại:
+
+| Phạm vi | Actual đã ghi | Trạng thái |
 |---|---|---|
-| git clone --branch main --single-branch https://github.com/NhanDuong21/mma301-assignment1.git <thư-mục-tạm> | Thành công, đúng SHA M6 | AI_AUTOMATED_PASS |
-| npm ci | Mã 0; thêm 485 gói, audit 486 gói; có cảnh báo uuid deprecated và 22 mục audit | AI_AUTOMATED_PASS cho cài đặt |
-| npx expo install --check | Dependencies are up to date | AI_AUTOMATED_PASS |
-| npx expo-doctor | 21/21, không bỏ qua check | AI_AUTOMATED_PASS |
-| npx expo config --type public | SDK 57.0.0; Android/iOS; assets có trong Git | AI_AUTOMATED_PASS |
-| npm start -- --localhost --port 8086 | Metro chạy; /status trả packager-status:running | AI_AUTOMATED_PASS |
-| /index.bundle?platform=android&dev=true&minify=false | HTTP 200, 5.028.952 byte | AI_AUTOMATED_PASS |
-| /index.bundle?platform=ios&dev=true&minify=false | HTTP 200, 5.026.779 byte | AI_AUTOMATED_PASS |
-| node "$env:TEMP\mma301-sprint-check.cjs" "$PWD" tại clone | PASS, 22 nhóm, 15 cảnh báo fault injection có chủ đích | AI_AUTOMATED_PASS |
-| node "$env:TEMP\mma301-doc-check.cjs" "$PWD" | UTF-8, code fence, link nội bộ, lịch sử AI M0–M2 giữ nguyên | AI_AUTOMATED_PASS |
-| git diff --check | Đạt sau sửa D02; chạy trước commit | AI_AUTOMATED_PASS |
-| npm audit --json tại repo chính (cùng lockfile) | Mã 1; 22 mục: 7 moderate, 15 high, 0 critical | FAIL — giới hạn dependency chưa sửa |
+| First-run/loading, default, không tự ghi trước hydrate | Mock hooks/storage đạt | HISTORICAL_PASS |
+| Validator name rỗng/trắng/1/2/50/51 và bio 160/161; Save/Cancel; Provider từ chối shape sai | Script logic đã ghi đạt | HISTORICAL_PASS |
+| Missing/corrupt JSON/sai shape/mode; lỗi đọc/ghi; thử lại; ghi tuần tự | Fault injection mock đã ghi đạt | HISTORICAL_PASS |
+| Tích hợp route/state/list bằng handler source + StackRouter thật | Tổng 22 nhóm logic đạt | HISTORICAL_PASS |
+| Clone sạch tại M6, npm ci, check/doctor/config/Metro | Doctor 21/21; clone/cài thành công | HISTORICAL_PASS |
+| Bundle Android/iOS | HTTP 200, 5.028.952 / 5.026.779 byte ở clone | HISTORICAL_PASS |
+| Audit dependency cũ | 22 mục: 7 moderate, 15 high | FAIL lịch sử; số hiện tại xem C05 |
 
-M7 chạy lại kiểm tra tài liệu sau khi thêm đủ tài liệu cuối. Metro được dừng bằng Ctrl+C sau kiểm tra; mã thoát khi dừng chủ động không phải bundle lỗi. Kích thước bundle ở clone khác repo chính vì metadata đường dẫn; cả hai đều biên dịch thành công. Các script tạm không đi cùng clone; giảng viên có thể chạy lại các lệnh Expo và checklist, hoặc tự viết bài kiểm tra theo ca phía trên.
+Script tạm đặt ngoài repo, không thuộc bản nộp; mock không phải React renderer và không chứng minh bridge/native disk thật. Chi tiết từng milestone có trong [AI_USAGE_LOG.md](AI_USAGE_LOG.md). Không dùng đường dẫn TEMP cũ làm điều kiện chạy app.
 
-## Rà soát source và bảo mật
+## D. Phạm vi chưa kiểm chứng
 
-- Import được giải quyết trong hai bundle. Dependency trực tiếp đúng phạm vi: navigation, native screens/safe area, AsyncStorage, Expo/React/RN.
-- Một NavigationContainer, năm tên route khớp handler; hai Provider bao navigation tree.
-- Chỉ appStorage gọi AsyncStorage; hai key khai báo một nơi. JSON parse/stringify và read/write đều nằm trong try/catch.
-- Không push/splice state; hai TextInput controlled; FlatList dùng ID, extraData và empty có thể đạt.
-- Không thấy file secret hoặc mẫu khóa phổ biến trong source được rà. Đây không phải kiểm toán bảo mật toàn lịch sử Git.
-- Chỉ console.warn phục vụ lỗi storage trong __DEV__; không có console.error trong source ứng dụng.
-- npm audit đánh dấu cả gói bị ảnh hưởng gián tiếp, không tương đương 22 lỗ hổng độc lập đã khai thác được. Nhánh bị báo gồm Expo CLI/Metro, React Native, braces, node-forge và uuid. Một số fixAvailable đề xuất Expo 44.0.6 hoặc RN 0.72.17; các gói khác báo có bản sửa. Chưa thử thay đổi cây dependency vì sprint khóa baseline và chỉ thêm dependency bắt buộc. Không khẳng định mọi cảnh báo đều vô hại hoặc không thể sửa; cần đánh giá tương thích riêng. Không chạy audit fix --force.
+| Phạm vi | Tình trạng |
+|---|---|
+| Fresh install thật không có key; JSON hỏng/lỗi đọc/lỗi ghi trên native | NOT_VERIFIED; chỉ có mock lịch sử |
+| Toàn bộ biên nhập liệu trên native, thay đổi bio | NOT_VERIFIED; mới thử Save tên thông thường, tên rỗng/1 ký tự |
+| Bàn phím ảo, màn hình nhỏ/cỡ chữ lớn | NOT_VERIFIED; người học yêu cầu dừng kiểm thử bổ sung |
+| System back/gesture, nhiều thiết bị/safe area | NOT_VERIFIED; đã dùng header back |
+| Force-stop/reboot, tắt app khi đang ghi | NOT_VERIFIED; L08 chỉ đóng/mở Expo Go |
+| Điện thoại thật, iOS, APK/release | NOT_VERIFIED |
+| Người học tự giải thích/debug/modification không dùng AI | Không xác nhận từ lần test này; có tài liệu luyện riêng |
 
-## Một checklist cuối trên điện thoại
-
-Mỗi mục chỉ đánh dấu sau khi tự thực hiện. Ghi thêm thiết bị, hệ điều hành, phiên bản Expo Go và ngày kiểm tra.
-
-- [ ] Mở app với dữ liệu lần đầu → loading rồi Home, Student và Light; không màn hình đỏ.
-- [ ] Home → Profile: avatar chữ cái, tên và giới thiệu đúng.
-- [ ] Profile → Edit: tên rỗng/toàn khoảng trắng/1 ký tự/51 ký tự hoặc bio 161 ký tự → Lưu hiện lỗi và ở lại.
-- [ ] Tên 2 hoặc 50 ký tự, bio tối đa 160 → Lưu → Profile và Home cập nhật; kiểm tra trim hai đầu.
-- [ ] Sửa nháp rồi Hủy; mở lại form → dữ liệu đã lưu còn nguyên. Thử cả back trên header và back/gesture hệ thống.
-- [ ] Activity: thấy 6 mục; chọn nhiều, bỏ chọn; số đếm/trạng thái cập nhật đúng.
-- [ ] Bật bộ lọc lúc không chọn gì, hoặc bỏ chọn mục cuối đang lọc → hiện thông báo rỗng; tắt lọc → đủ 6 mục.
-- [ ] Quay về Home rồi mở lại Activity → lựa chọn/bộ lọc về mặc định (đúng thiết kế).
-- [ ] Settings đổi Dark/Light; đi qua đủ năm màn hình → chữ, ô nhập, lỗi, card và header đọc được, theme giữ nguyên.
-- [ ] Lưu hồ sơ và Dark, chờ vài giây rồi đóng/mở lại ứng dụng thật → khôi phục đúng; không dùng Fast Refresh thay bước này.
-- [ ] Màn hình nhỏ/cỡ chữ lớn: form cuộn được khi mở bàn phím; nút Lưu/Hủy và nội dung không bị che; danh sách cuộn được.
-- [ ] Đi lại đủ năm route vài lần → back hợp lý, không lỗi đỏ; ghi log/ảnh và các bước nếu thấy lỗi.
-
-Các lỗi storage hỏng/không đọc/không ghi đã được mô phỏng tự động. Không yêu cầu người mới sửa dữ liệu native thủ công chỉ để đánh dấu checklist. Nếu cần demo fault injection, thực hiện trong phiên debug có hướng dẫn và không commit dữ liệu lỗi vào ứng dụng.
+Các mục này được giữ minh bạch; không cần bổ sung chức năng ngoài đề để che việc chưa kiểm thử. R09 trong RTM vẫn PARTIAL.

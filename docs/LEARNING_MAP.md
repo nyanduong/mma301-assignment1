@@ -1,5 +1,7 @@
 # Bản đồ học và tập phỏng vấn
 
+Cập nhật 30/10/2026 theo source `ee2e70c`. Tài liệu này hỗ trợ Code Explanation và Modification/Transfer trong rubric Assignment 1; các câu hỏi/bài tập không phải bằng chứng người học đã hoàn thành. Kết quả chạy thật xem [TEST_MATRIX.md](TEST_MATRIX.md).
+
 Đọc source thật rồi chạy app. Với mỗi luồng, tự kể được: vì sao cần → hàm nào chạy → state nào đổi → màn hình nào nhận dữ liệu → lỗi đi đâu. Đừng học thuộc câu trả lời mà chưa thử thay đổi nhỏ.
 
 ## Luồng 1 — Khởi động và điều hướng
@@ -29,8 +31,10 @@ Lecturer có thể hỏi:
 - Đầu vào: themeMode hiện tại và sự kiện Switch.
 - Kích hoạt: onValueChange → toggleTheme.
 - Biến đổi: updater đọc previousMode → chọn light/dark → tính isDark/colors → value Context đổi → consumer render lại → effect lưu mode.
-- Đầu ra: nền/chữ/placeholder/lỗi/header dùng bộ màu mới.
+- Đầu ra: nền/chữ/placeholder/lỗi/header dùng bộ màu mới; StatusBar trong ThemeProvider dùng light-content khi Dark, dark-content khi Light.
 - Đường lỗi: màu hard-code có thể khó đọc; consumer sai Provider không nhận state; lỗi storage vẫn đổi UI nhưng báo chưa lưu.
+
+Ví dụ debug thật: nền đổi Dark nhưng status bar vẫn chữ tối. Kiểm tra ThemeContext.jsx → StatusBar → barStyle theo isDark; đã sửa và retest Light/Dark trên LDPlayer. Không suy ra đã kiểm thử bàn phím ảo hoặc màn hình nhỏ từ kết quả này.
 
 Lecturer có thể hỏi:
 
@@ -139,4 +143,4 @@ Lecturer có thể hỏi:
 | Lưu lựa chọn hoạt động | ActivityScreen; appStorage; nơi sở hữu lựa chọn nếu cần dùng chung | selectedIds + hydrate/error; cân nhắc Provider khi phải chia sẻ | Khóa mới, validator chỉ nhận ID tồn tại; tránh ghi sớm | Restore chọn, ID cũ không tồn tại, read/write lỗi, pop/remount |
 | Thêm theme theo hệ thống | ThemeContext, ThemeToggle/Settings, app.json nếu cần native appearance | Preference light/dark/system; mode hiệu lực tính từ hệ điều hành | Validator/key theme nhận system; giữ tương thích dữ liệu cũ | Đổi giao diện hệ điều hành khi đang mở app, chọn thủ công, restart và fallback |
 
-Mục tiêu mỗi bài: tự chỉ đúng tệp → nói rõ flow → sửa nhỏ → chạy kiểm tra → giải thích một failure path. Không thực hiện sáu bài này trong sprint M3–M7.
+Mục tiêu mỗi bài: tự chỉ đúng tệp → nói rõ flow → sửa nhỏ → chạy kiểm tra → giải thích một failure path. Sáu bài vẫn là bài luyện chưa triển khai trong hồ sơ này; không phải tính năng còn thiếu để app đáp ứng core scope.

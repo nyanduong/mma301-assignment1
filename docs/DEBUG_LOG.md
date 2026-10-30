@@ -1,5 +1,21 @@
 # Nhật ký gỡ lỗi
 
+Cập nhật 30/10/2026. B01 là lỗi ứng dụng được quan sát và sửa ngày 29/10 trên LDPlayer. D01–D04 bên dưới là lịch sử ngày 07/10, giữ đúng loại lỗi công cụ/dependency/tài liệu; không biến thành lỗi app hoặc kết quả mới.
+
+## B01 — Status bar khó đọc khi bật Dark (29/10/2026)
+
+- Triệu chứng: tại Settings bật Dark, nền/header đổi tối nhưng giờ và biểu tượng Android vẫn tối, khó đọc; quan sát tương tự khi điều hướng.
+- Giả thuyết: Context đổi màu nội dung nhưng chưa cấu hình StatusBar của hệ điều hành.
+- Kiểm tra: ThemeContext.jsx trước sửa không render StatusBar; AppNavigator chỉ cấu hình màu header/navigation. app.json khai báo userInterfaceStyle light.
+- Root cause: thiếu barStyle theo theme dùng chung; thay màu background/text trong React Native không tự bảo đảm màu chữ/biểu tượng status bar phù hợp.
+- Fix: import StatusBar từ react-native, đặt trong ThemeProvider với `barStyle={isDark ? 'light-content' : 'dark-content'}`; dùng điều kiện hydrated cho children/LoadingScreen để StatusBar vẫn hiện trong lúc đọc theme.
+- Retest: Codex thao tác Settings trên LDPlayer: bật Dark → giờ/icon trắng, đọc rõ; tắt Dark → chữ/icon tối trên nền sáng, đọc rõ. Không thấy màn hình lỗi đỏ trong luồng này.
+- Trạng thái: FIXED, source hiện tại còn bản sửa. Đối chiếu ngày 30/10 tại commit ee2e70c; không chạy lại UI trong lượt hoàn thiện tài liệu.
+- Hồi quy liên quan: Light/Dark đều đã quan sát sau sửa. Chưa kiểm chứng iOS, reboot/hydration bằng UI sau bản sửa hoặc nhiều thiết bị; không tuyên bố đã đạt những phạm vi đó.
+- Phòng ngừa: khi thay theme kiểm tra cả nội dung, header và status bar; dùng một chủ sở hữu theme. Bằng chứng thao tác nằm trong phiên chat, không có screenshot riêng trong repo.
+
+## Các lỗi lịch sử ngày 07/10/2026
+
 ## D01 — Bộ kiểm tra đọc sai vị trí màu trong mảng style (M3, 07/10/2026)
 
 - Phân loại: tooling — lỗi bộ kiểm tra, không phải lỗi giao diện đã được xác nhận.
@@ -51,4 +67,4 @@
 
 D01–D02 xảy ra trong sprint; D03–D04 lấy từ lịch sử đã được ghi, không tái tạo lỗi giả. Chưa phát hiện application defect qua phạm vi tự động đã chạy. Các lần cố ý truyền JSON hỏng, trì hoãn đọc, reject read/write là ca kiểm thử khả năng chịu lỗi, không gọi là bug đã xảy ra với người dùng.
 
-Cảnh báo NO_COLOR/FORCE_COLOR của terminal không làm bundle thất bại. Cảnh báo uuid deprecated và 22 mục npm audit vẫn còn; xem TEST_MATRIX. Không khẳng định đã xử lý chỉ vì cài đặt hoặc doctor đạt.
+Cảnh báo NO_COLOR/FORCE_COLOR của terminal không làm bundle lịch sử thất bại. uuid deprecated và 22 mục audit là kết quả dependency cũ ngày 07/10. Ngày 30/10, audit SDK 58 hiện có 8 mục (5 low, 3 high), chưa xử lý; xem TEST_MATRIX. Doctor 20/20 hiện tại không có nghĩa audit sạch.

@@ -1,36 +1,46 @@
-# Bảng đối chiếu yêu cầu với mã nguồn
+# Requirement Traceability Matrix — Assignment 1
 
-Cập nhật M7, 07/10/2026. PASS ở đây là mức bằng chứng tự động/mã nguồn được ghi rõ; không có nghĩa đã test giao diện native. PARTIAL nghĩa còn thiếu bằng chứng trực quan cần thiết. Không có xác nhận điện thoại trong sprint này.
+Cập nhật 30/10/2026, source đối chiếu `ee2e70c`. RTM này mô tả bản hiện tại; bằng chứng tự động ngày 07/10 chỉ có giá trị lịch sử cho SDK 57.
 
-| Mã | Yêu cầu | Cách triển khai | Tệp / hàm làm bằng chứng | Kiểm tra và kết quả | Trạng thái |
-|---|---|---|---|---|---|
-| R01 | Dự án Expo/React Native | JavaScript, Expo 57, React 19.2.3, RN 0.86.3 | package.json, index.js → registerRootComponent | M5: dependency phù hợp, doctor 21/21, hai bundle HTTP 200 | PASS tự động |
-| R02 | Ít nhất 5 màn hình | Native Stack: Home, Profile, EditProfile, Activity, Settings | src/navigation/AppNavigator.jsx → AppNavigator | M6: StackRouter thật đi đủ route, gọi navigate/goBack qua handler; thao tác native chờ thiết bị | PASS logic |
-| R03 | Hiển thị hồ sơ | Tên, giới thiệu và avatar chữ cái; Home đọc cùng Context | src/screens/ProfileScreen.jsx; HomeScreen.jsx; src/context/ProfileContext.jsx | M3/M6: sau Save, Home/Profile nhận tên mới; avatar không gọi mạng | PASS logic/source |
-| R04 | Chỉnh sửa và validation | Bản nháp controlled; tên 2–50 sau trim, bio ≤160; Save/Cancel | src/screens/EditProfileScreen.jsx → handleSave; src/utils/profileValidation.js | M3/M6: các biên độ dài, invalid không lưu/không pop, valid bất biến, Cancel bỏ nháp | PASS logic |
-| R05 | Theme dùng chung | ThemeProvider chia sẻ mode/màu/toggle; navigator nhận theme | src/context/ThemeContext.jsx; src/components/ThemeToggle.jsx; AppNavigator.jsx | M3/M6: đổi mode, input và header theo màu, state giữ qua điều hướng | PASS logic/source |
-| R06 | FlatList và rỗng | 6 mục, ID cố định, chọn/bỏ chọn, bộ lọc, extraData | src/screens/ActivityScreen.jsx; src/components/ActivityItem.jsx; src/data/activities.js | M4/M6: key unique, select/unselect, count, filter, rỗng có thể đạt, mảng cũ giữ nguyên | PASS logic |
-| R07 | AsyncStorage | Hai khóa tập trung; đọc rồi hydrate; effect ghi sau thay đổi | src/storage/appStorage.js; hai Provider | M5/M6: JSON save/remount restore, đọc chậm không ghi đè, ghi tuần tự; native restart còn chờ | PASS logic/bundle |
-| R08 | Thành phần dùng lại | ScreenContainer, ThemeToggle, ActivityItem, LoadingScreen, StorageNotice | src/components/ | Source: container cho 5 screen; item cho 6 mục; loading cho 2 Provider; bundle giải quyết import | PASS source/bundle |
-| R09 | Flexbox và bố trí linh hoạt | flex:1 cho khung; ScrollView form/profile; FlatList; hàng lọc co giãn | ScreenContainer.jsx; EditProfileScreen.jsx; ProfileScreen.jsx; ActivityScreen.jsx | Source có bố trí tương ứng; chưa nhìn native trên màn hình nhỏ, bàn phím và cỡ chữ lớn | PARTIAL — chờ thiết bị |
-| R10 | Lỗi và fallback | Form hiện lỗi; storage parse/shape/read/write bắt lỗi và báo trên UI | profileValidation.js; appStorage.js; StorageNotice.jsx | M5/M6: invalid/corrupt/missing/read/write lỗi mô phỏng; state vẫn dùng được, ghi lại thành công xóa cảnh báo | PASS logic |
+- **PASS emulator**: Codex đã thao tác UI LDPlayer ngày 29/10, trong đúng phạm vi ghi ở TEST_MATRIX.
+- **PASS source/config**: đã đối chiếu code/cấu hình; không thay thế test native.
+- **PARTIAL**: còn yêu cầu chưa được chứng minh đầy đủ.
+- Các kiểm thử mở rộng người học yêu cầu dừng vẫn để chưa kiểm chứng.
 
-## Mức kiểm chứng
+| ID | Yêu cầu | Triển khai / source | Bằng chứng hiện có | Trạng thái |
+|---|---|---|---|---|
+| R01 | Expo/React Native project | package.json, package-lock.json, index.js; Expo 58.0.21, React 19.3.0, RN 0.88.1 | 30/10: dependency check đạt, doctor 20/20, config SDK 58; 29/10 mở app trên LDPlayer. Chưa cài lại clone sạch SDK 58 | PASS config/emulator trong phạm vi ghi |
+| R02 | ≥5 màn hình, navigation/back | AppNavigator.jsx: Home/Profile/EditProfile/Activity/Settings, một Native Stack | 29/10 mở đủ route, Save/Cancel và header back hoạt động; system back/gesture chưa thử | PASS emulator cho route/header back |
+| R03 | Profile name/avatar/bio, dữ liệu lưu | ProfileScreen.jsx, HomeScreen.jsx, ProfileContext.jsx | Student/avatar S/bio hiển thị; Save Studentq cập nhật Home/Profile; mở lại Expo Go còn Studentq | PASS emulator |
+| R04 | Controlled form + validation + Save/Cancel | EditProfileScreen.jsx, profileValidation.js; name trim 2–50, bio thô ≤160 | Save hợp lệ và Hủy đạt; tên rỗng/1 ký tự bị chặn. Toàn bộ biên khác mới có bằng chứng mock lịch sử, chưa retest native | PASS emulator cho ca đã thử; biên mở rộng chưa kiểm chứng |
+| R05 | Theme/preference shared bằng Context | ThemeContext.jsx, ThemeToggle.jsx, AppNavigator.jsx; StatusBar theo isDark | Đã quan sát cả năm màn hình ở Dark; Light/Dark giữ khi điều hướng; StatusBar sau sửa đổi màu đúng | PASS emulator |
+| R06 | FlatList/SectionList + interaction/empty | ActivityScreen.jsx, ActivityItem.jsx, activities.js; key ID, extraData | Sáu mục; chọn hai mục count 2; lọc một mục; bỏ chọn mục cuối ra empty; lọc khi chưa chọn cũng empty | PASS emulator; cấu trúc list đã rà source |
+| R07 | Persistence AsyncStorage | appStorage.js và hai Provider; JSON, hydrate/ref, tuần tự theo key | Đóng tab Expo Go → launcher → mở Expo Go → chọn dự án: giữ Studentq và Dark. Không tương đương force-stop/reboot | PASS emulator cho đóng/mở Expo Go |
+| R08 | Reusable components | ScreenContainer cho năm screen, ActivityItem cho list, LoadingScreen cho hai Provider, ThemeToggle/StorageNotice | Source chia trách nhiệm rõ; các thành phần chính hiển thị trên emulator | PASS source/emulator trong phạm vi ghi |
+| R09 | Responsive Flexbox/style | ScreenContainer flex:1, form/profile ScrollView, Activity FlatList | Bố trí portrait đã nhìn trên LDPlayer; chưa thử màn hình nhỏ/cỡ chữ lớn/bàn phím ảo theo quyết định người học | PARTIAL — chưa kiểm chứng đầy đủ |
+| R10 | Validation/storage/error/fallback | profileValidation.js, appStorage.js, StorageNotice.jsx | Invalid name và empty state đã thử UI; missing/corrupt/read/write fault injection chỉ có mock lịch sử, chưa thử native | PASS source và ca UI đã thử; storage fault native chưa kiểm chứng |
 
-- M6: 22 nhóm kiểm tra đạt bằng script ngoài repo `node "$env:TEMP\mma301-sprint-check.cjs" "$PWD"`. Script nạp source thật bằng Babel, mô phỏng hooks/native UI/AsyncStorage; bài tích hợp dùng StackRouter thật. Đây không phải React renderer hay kiểm thử end-to-end native.
-- M5: Android bundle 5.028.967 byte, iOS 5.026.794 byte, HTTP 200; Expo doctor 21/21.
-- M6 không sửa source hoặc dependency sau gate M5; chạy lại toàn bộ logic tích hợp và kiểm tra tài liệu.
-- M7: clone sạch tại M6 `71c0836`, npm ci/check/doctor 21/21/config/Metro/hai bundle và 22 nhóm logic đạt. Source/dependency không đổi trong M7. Cài mới không cần file bí mật hoặc node_modules cũ.
-- Các ca T01–T18, D01 và checklist điện thoại ở [TEST_MATRIX.md](TEST_MATRIX.md); không gán PASS native cho bất kỳ dòng nào. npm audit còn 22 mục, ghi riêng giới hạn dependency.
+## State ownership
 
-## Ai sở hữu dữ liệu?
-
-| Dữ liệu | Chủ sở hữu | Ai đọc | Có lưu qua lần mở app? |
+| Dữ liệu | Chủ sở hữu | Consumer | Persistence |
 |---|---|---|---|
-| name, bio đã lưu | ProfileProvider | Home/Profile/EditProfile | Có, khóa mma301.profile |
-| name, bio đang gõ; errors | EditProfileScreen | Chỉ form | Không; mất khi màn hình bị pop |
-| themeMode | ThemeProvider | Navigator và UI | Có, khóa mma301.theme |
-| selectedIds, showSelectedOnly | ActivityScreen | FlatList/ActivityItem | Không; mất khi màn hình bị pop |
-| hydrated, storageError | Từng Provider | Cổng loading/cảnh báo | Không; tính lại mỗi lần khởi động |
+| name/bio chính | ProfileProvider | Home/Profile/EditProfile | mma301.profile |
+| name/bio nháp, errors | EditProfileScreen | Form | Không |
+| themeMode | ThemeProvider | Navigator, StatusBar, UI | mma301.theme |
+| selectedIds/showSelectedOnly | ActivityScreen | List/ActivityItem | Không; pop rồi mở lại reset |
+| hydrated/storageError | Từng Provider | Loading/cảnh báo | Không |
 
-Hướng dẫn quyết định thiết kế: [DESIGN_DECISIONS.md](DESIGN_DECISIONS.md). Lịch sử kiểm tra: [AI_USAGE_LOG.md](AI_USAGE_LOG.md).
+## Đối chiếu hồ sơ đánh giá
+
+| Đầu ra đề yêu cầu | Nơi cung cấp |
+|---|---|
+| Source chạy lại, hướng dẫn và workflow/state/limitations/AI | Source + README.md |
+| RTM | Tài liệu này |
+| ≥5 design decisions | DESIGN_DECISIONS.md, tám quyết định |
+| Test matrix có expected/actual/status | TEST_MATRIX.md |
+| ≥2 lỗi thật và retest | DEBUG_LOG.md, gồm lỗi app StatusBar và lỗi công cụ/dependency lịch sử |
+| AI usage evidence | AI_USAGE_LOG.md |
+| Giải thích và luyện thay đổi nhỏ | LEARNING_MAP.md; không khai đã tự hoàn thành bài luyện |
+| Git history | Các commit trong repo; không thay thế năng lực phỏng vấn |
+
+Chi tiết môi trường, ngày và giới hạn: [TEST_MATRIX.md](TEST_MATRIX.md). Lý do thiết kế: [DESIGN_DECISIONS.md](DESIGN_DECISIONS.md).
