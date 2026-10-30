@@ -1,4 +1,5 @@
 import { createContext, useEffect, useRef, useState } from 'react';
+import { StatusBar } from 'react-native';
 
 import LoadingScreen from '../components/LoadingScreen';
 import { readStoredValue, STORAGE_KEYS, writeStoredValue } from '../storage/appStorage';
@@ -62,11 +63,10 @@ export function ThemeProvider({ children }) {
     setThemeMode((previousMode) => previousMode === 'light' ? 'dark' : 'light');
   }
 
-  if (!hydrated) return <LoadingScreen colors={colors} message="Đang đọc giao diện đã lưu…" />;
-
   return (
     <ThemeContext.Provider value={{ themeMode, isDark, colors, toggleTheme, storageError }}>
-      {children}
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+      {hydrated ? children : <LoadingScreen colors={colors} message="Đang đọc giao diện đã lưu…" />}
     </ThemeContext.Provider>
   );
 }
